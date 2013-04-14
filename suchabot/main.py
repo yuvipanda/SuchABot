@@ -37,17 +37,23 @@ def path_for_name(name):
 def ensure_repo(name):
     if not os.path.exists(WORKING_DIR):
         sh.mkdir('-p', WORKING_DIR)
+        log("Created working directory %s" % WORKING_DIR)
     fs_name = name.replace('/', '-')
     clone_folder = os.path.join(WORKING_DIR, fs_name)
     if is_git_repo(clone_folder):
         sh.cd(clone_folder)
+        log("Repo found, updating...")
         sh.git.pull('origin', 'master')
+        log("Updated!")
     else:
+        log("Repo not found. Cloning...")
         sh.cd(WORKING_DIR)
         sh.git.clone(GERRIT_TEMPLATE % name, fs_name)
+        log("Clone completed! Setting up git review...")
         sh.cd(fs_name)
         sh.git.remote('add', 'gerrit', GERRIT_TEMPLATE % name)
         sh.git.review('-s')
+        log("git review setup!")
 
 def get_pullreq(name, number):
     gh_name = name.replace('/', '-')
@@ -69,7 +75,7 @@ def log(s):
     print s
 
 def do_review(name, pr):
-    log("Syncing Repo %s for PR #%s" % (name, pr))
+    log("Syncing Repo %s for PR #%s" % (name, pr.number))
     gh_name = name.replace('/', '-')
     path = path_for_name(name)
     sh.cd(path)
