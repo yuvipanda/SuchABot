@@ -8,7 +8,7 @@ import yaml
 import re
 
 
-WORKING_DIR = "/Users/yuvipanda/suchaworking"
+WORKING_DIR = os.path.expanduser("~/.sucharepos")
 CONFIG_PATH = os.path.expanduser('~/.suchabot.yaml')
 OWNER = "wikimedia"
 CHANGE_ID_REGEX = re.compile('Change-Id: (\w+)')
@@ -35,6 +35,8 @@ def path_for_name(name):
     return os.path.join(WORKING_DIR, name.replace('/', '-'))
 
 def ensure_repo(name):
+    if not os.path.exists(WORKING_DIR):
+        sh.mkdir('-p', WORKING_DIR)
     fs_name = name.replace('/', '-')
     clone_folder = os.path.join(WORKING_DIR, fs_name)
     if is_git_repo(clone_folder):
