@@ -42,10 +42,12 @@ def ensure_repo(name):
     if is_git_repo(clone_folder):
         sh.cd(clone_folder)
         sh.git.pull('origin', 'master')
-        sh.git.review('-s')
     else:
         sh.cd(WORKING_DIR)
         sh.git.clone(GERRIT_TEMPLATE % name, fs_name)
+        sh.cd(fs_name)
+        sh.git.remote('add', 'gerrit', GERRIT_TEMPLATE % name)
+        sh.git.review('-s')
 
 def get_pullreq(name, number):
     gh_name = name.replace('/', '-')
