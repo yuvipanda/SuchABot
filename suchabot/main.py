@@ -65,7 +65,11 @@ def get_last_change_id():
     header = str(sh.git('--no-pager', 'log', '-n', '1'))
     return list(CHANGE_ID_REGEX.finditer(header))[-1].group(1)
 
+def log(s):
+    print s
+
 def do_review(name, pr):
+    log("Syncing Repo %s for PR #%s" % (name, pr))
     gh_name = name.replace('/', '-')
     path = path_for_name(name)
     sh.cd(path)
@@ -74,7 +78,9 @@ def do_review(name, pr):
     if 'tmp' in sh.git.branch():
         sh.git.branch('-D', 'tmp')
     sh.git.checkout('-b', 'tmp')
+    log("Attempting to download patch")
     sh.git.am(sh.curl(pr.patch_url))
+    log("Applied patch")
 
     commit_summaries = sh.git('--no-pager', 'log', '--no-color', 'master..tmp')
     # Author of last patch is going to be the author of the commit on Gerrit. Hmpf
@@ -84,22 +90,32 @@ def do_review(name, pr):
 
     branch_name = 'github/pr/%s' % pr.number
 
+    log("Topic Branch %s" % branch_name)
+
     if branch_name in sh.git.branch():
-        print "already exists!"
+        log("Patchset already exists, updating")
         sh.git.checkout(branch_name)
         change_id = get_last_change_id()
+        log("Patchset Change-Id: %s" % change_id)
         sh.git.reset('--hard', 'HEAD~1')
         sh.git.merge('--squash', 'tmp')
         sh.git.commit('--author', author, '-m', format_commit_msg(pr, commit_summaries, change_id))
+        log("Squashed commit successful. Attempting review")
         #gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Updated in Gerrit: %s' % gerrit_url_for(change_id))
         sh.git.review()
+        log("Review successful!")
     else:
+        log("New patchset")
         sh.git.checkout('-b', branch_name)
         sh.git.merge('--squash', 'tmp')
         sh.git.commit('--author', author, '-m', format_commit_msg(pr, commit_summaries))
         change_id = get_last_change_id()
-        gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Submitted to Gerrit: %s' % gerrit_url_for(change_id))
+        log("Patchset Change-Id: %s" % change_id)
+        log("attempting review")
         sh.git.review() 
+        log("Review successful!")
+        gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Submitted to Gerrit: %s' % gerrit_url_for(change_id))
+        log("Left comment on Pull Request")
 
 if __name__ == '__main__':
     name = sys.argv[1]
