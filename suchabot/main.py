@@ -12,7 +12,7 @@ WORKING_DIR = os.path.expanduser("~/.sucharepos")
 CONFIG_PATH = os.path.expanduser('~/.suchabot.yaml')
 OWNER = "wikimedia"
 CHANGE_ID_REGEX = re.compile('Change-Id: (\w+)')
-GERRIT_TEMPLATE = "ssh://suchabot@suchabot-gerrit/%s.git"
+GERRIT_TEMPLATE = "ssh://suchabot@gerrit.wikimedia.org:29418/%s.git"
 BOT_AUTHOR = "SuchABot <yuvipanda+suchabot@gmail.com>"
 COMMIT_MSG_TEMPLATE = jinja2.Template("""{{pr.title}}
 
