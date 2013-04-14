@@ -63,7 +63,7 @@ def format_commit_msg(pr, commit_summaries, change_id=None):
 # Assumes current directory and work tree
 def get_last_change_id():
     header = str(sh.git('--no-pager', 'log', '-n', '1'))
-    return CHANGE_ID_REGEX.search(header).group(1)
+    return list(CHANGE_ID_REGEX.finditer(header))[-1].group(1)
 
 def do_review(name, pr):
     gh_name = name.replace('/', '-')
