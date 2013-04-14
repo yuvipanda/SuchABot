@@ -83,7 +83,7 @@ def do_review(name, pr):
     sh.git.checkout('master')
     if 'tmp' in sh.git.branch():
         sh.git.branch('-D', 'tmp')
-    sh.git.checkout('-b', 'tmp')
+    sh.git.checkout(pr.base.sha, '-b', 'tmp')
     log("Attempting to download patch")
     sh.git.am(sh.curl(pr.patch_url))
     log("Applied patch")
@@ -99,11 +99,11 @@ def do_review(name, pr):
     log("Topic Branch %s" % branch_name)
 
     if branch_name in sh.git.branch():
-        log("Patchset already exists, updating")
+        log("Patchset already exists, based on %s" % pr.base.sha)
         sh.git.checkout(branch_name)
         change_id = get_last_change_id()
         log("Patchset Change-Id: %s" % change_id)
-        sh.git.reset('--hard', 'HEAD~1')
+        sh.git.reset('--hard', pr.base.sha)
         sh.git.merge('--squash', 'tmp')
         sh.git.commit('--author', author, '-m', format_commit_msg(pr, commit_summaries, change_id))
         log("Squashed commit successful. Attempting review")
@@ -111,8 +111,8 @@ def do_review(name, pr):
         sh.git.review()
         log("Review successful!")
     else:
-        log("New patchset")
-        sh.git.checkout('-b', branch_name)
+        log("New patchset, based on %s" % pr.base.sha)
+        sh.git.checkout(pr.base.sha, '-b', branch_name)
         sh.git.merge('--squash', 'tmp')
         sh.git.commit('--author', author, '-m', format_commit_msg(pr, commit_summaries))
         change_id = get_last_change_id()
