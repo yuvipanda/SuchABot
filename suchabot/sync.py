@@ -70,7 +70,11 @@ def get_last_change_id():
 def log(s):
     print s
 
-def do_review(name, pr):
+def do_review(pr):
+    # FIXME: This breaks for any repo with a '-' in it's name itself
+    # BLEH
+    name = pr.base.repo.name.replace('-', '/')
+    ensure_repo(name)
     log("Syncing Repo %s for PR #%s" % (name, pr.number))
     gh_name = name.replace('/', '-')
     path = path_for_name(name)
@@ -123,5 +127,4 @@ if __name__ == '__main__':
     name = sys.argv[1]
     pr_num = sys.argv[2]
 
-    ensure_repo(name)
-    do_review(name, get_pullreq(name, pr_num))
+    do_review(get_pullreq(name, pr_num))
