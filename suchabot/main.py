@@ -93,6 +93,7 @@ def do_review(name, pr):
 
     log("Topic Branch %s" % branch_name)
     is_new = True
+    change_id = None
 
     if branch_name in sh.git.branch():
         is_new = False
