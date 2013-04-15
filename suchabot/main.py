@@ -18,10 +18,6 @@ COMMIT_MSG_TEMPLATE = jinja2.Template("""{{pr.title}}
 
 {{pr.body}}
 
-Contains the following separate commits:
-
-{{commit_summaries}}
-
 GitHub: {{pr.html_url}}
 {% if change_id %}Change-Id: {{change_id}} {% endif %}""")
 
@@ -63,8 +59,8 @@ def get_pullreq(name, number):
 def gerrit_url_for(change_id):
     return "https://gerrit.wikimedia.org/r/#q,%s,n,z" % change_id
 
-def format_commit_msg(pr, commit_summaries, change_id=None):
-    return COMMIT_MSG_TEMPLATE.render(pr=pr, commit_summaries=commit_summaries, change_id=change_id)
+def format_commit_msg(pr, change_id=None):
+    return COMMIT_MSG_TEMPLATE.render(pr=pr, change_id=change_id)
 
 # Assumes current directory and work tree
 def get_last_change_id():
@@ -88,7 +84,6 @@ def do_review(name, pr):
     sh.git.am(sh.curl(pr.patch_url))
     log("Applied patch")
 
-    commit_summaries = sh.git('--no-pager', 'log', '--no-color', 'master..tmp')
     # Author of last patch is going to be the author of the commit on Gerrit. Hmpf
     author = sh.git('--no-pager', 'log', '--no-color', '-n', '1', '--format="%an <%ae>"')
 
@@ -108,7 +103,7 @@ def do_review(name, pr):
         log("Patchset Change-Id: %s" % change_id)
         sh.git.reset('--hard', pr.base.sha)
         sh.git.merge('--squash', 'tmp')
-        sh.git.commit('--author', author, '-m', format_commit_msg(pr, commit_summaries, change_id))
+        sh.git.commit('--author', author, '-m', format_commit_msg(pr, change_id))
         log("Squashed commit successful. Attempting review")
         #gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Updated in Gerrit: %s' % gerrit_url_for(change_id))
         sh.git.review()
@@ -117,7 +112,7 @@ def do_review(name, pr):
         log("New patchset, based on %s" % pr.base.sha)
         sh.git.checkout(pr.base.sha, '-b', branch_name)
         sh.git.merge('--squash', 'tmp')
-        sh.git.commit('--author', author, '-m', format_commit_msg(pr, commit_summaries))
+        sh.git.commit('--author', author, '-m', format_commit_msg(pr))
         change_id = get_last_change_id()
         log("Patchset Change-Id: %s" % change_id)
         log("attempting review")
