@@ -14,6 +14,7 @@ OWNER = "wikimedia"
 CHANGE_ID_REGEX = re.compile('Change-Id: (\w+)')
 GERRIT_TEMPLATE = "ssh://suchabot@gerrit.wikimedia.org:29418/%s.git"
 BOT_AUTHOR = "SuchABot <yuvipanda+suchabot@gmail.com>"
+BUG_TAGS = re.compile('Bug: (\w+)')
 COMMIT_MSG_TEMPLATE = jinja2.Template("""{{pr.title}}
 
 {{pr.body}}
@@ -23,6 +24,8 @@ Contains the following separate commits:
 {{commit_summaries}}
 
 GitHub: {{pr.html_url}}
+{% for bug in bugs %}Bug: {{ bug }}
+{% endfor %}
 {% if change_id %}Change-Id: {{change_id}} {% endif %}""")
 
 config = yaml.load(open(CONFIG_PATH))
@@ -64,7 +67,12 @@ def gerrit_url_for(change_id):
     return "https://gerrit.wikimedia.org/r/#q,%s,n,z" % change_id
 
 def format_commit_msg(pr, commit_summaries, change_id=None):
-    return COMMIT_MSG_TEMPLATE.render(pr=pr, commit_summaries=commit_summaries, change_id=change_id)
+    bugs = []
+    for bug_match in BUG_TAGS.finditer(commit_summaries):
+        if bug_match.group(1) not in bugs:
+            bugs.append(bug_match.group(1))
+    commit_summaries = BUG_TAGS.replaceall(commit_summaries, "")
+    return COMMIT_MSG_TEMPLATE.render(pr=pr, commit_summaries=commit_summaries, change_id=change_id, bugs=bugs)
 
 # Assumes current directory and work tree
 def get_last_change_id():
