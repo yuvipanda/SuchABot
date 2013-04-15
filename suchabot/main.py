@@ -92,34 +92,31 @@ def do_review(name, pr):
     branch_name = 'github/pr/%s' % pr.number
 
     log("Topic Branch %s" % branch_name)
+    is_new = True
 
     if branch_name in sh.git.branch():
+        is_new = False
         log("Patchset already exists, based on %s" % pr.base.sha)
         sh.git.checkout(branch_name)
         change_id = get_last_change_id()
         sh.git.checkout("master")
         sh.git.branch('-D', branch_name)
-        sh.git.checkout(pr.base.sha, '-b', branch_name)
-        log("Patchset Change-Id: %s" % change_id)
-        sh.git.reset('--hard', pr.base.sha)
-        sh.git.merge('--squash', 'tmp')
-        sh.git.commit('--author', author, '-m', format_commit_msg(pr, change_id))
-        log("Squashed commit successful. Attempting review")
-        #gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Updated in Gerrit: %s' % gerrit_url_for(change_id))
-        sh.git.review()
-        log("Review successful!")
     else:
         log("New patchset, based on %s" % pr.base.sha)
-        sh.git.checkout(pr.base.sha, '-b', branch_name)
-        sh.git.merge('--squash', 'tmp')
-        sh.git.commit('--author', author, '-m', format_commit_msg(pr))
+        is_new = True
+
+    sh.git.checkout(pr.base.sha, '-b', branch_name)
+    sh.git.merge('--squash', 'tmp')
+    sh.git.commit('--author', author, '-m', format_commit_msg(pr, change_id=change_id))
+    if is_new:
         change_id = get_last_change_id()
-        log("Patchset Change-Id: %s" % change_id)
-        log("attempting review")
-        sh.git.review() 
-        log("Review successful!")
+    log("Patchset Change-Id: %s" % change_id)
+    log("attempting review")
+    #sh.git.review()
+    log("Review successful!")
+    if is_new:
         gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Submitted to Gerrit: %s' % gerrit_url_for(change_id))
-        log("Left comment on Pull Request")
+    log("Left comment on Pull Request")
 
 if __name__ == '__main__':
     name = sys.argv[1]
