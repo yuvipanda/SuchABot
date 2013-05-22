@@ -21,7 +21,8 @@ COMMIT_MSG_TEMPLATE = jinja2.Template("""{{pr.title}}
 GitHub: {{pr.html_url}}
 {% if change_id %}Change-Id: {{change_id}} {% endif %}""")
 
-config = yaml.load(open(CONFIG_PATH))
+with open(CONFIG_PATH) as f:
+    config = yaml.load(f)
 gh = github.GitHub(username=config['github']['username'], password=config['github']['password'])
 
 def is_git_repo(path):
