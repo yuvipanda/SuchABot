@@ -39,7 +39,7 @@ def ensure_repo(name):
     if is_git_repo(clone_folder):
         sh.cd(clone_folder)
         log("Repo found, updating...")
-        sh.git.pull('origin', 'master')
+        sh.git.fetch('origin gerrit')
         log("Updated!")
     else:
         log("Repo not found. Cloning...")
