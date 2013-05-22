@@ -120,6 +120,7 @@ def do_review(pr):
     log("attempting review")
     #sh.git.review()
     log("Review successful!")
+    sh.git.checkout('master') # Set branch back to master when we're done
     if is_new:
         gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Submitted to Gerrit: %s' % gerrit_url_for(change_id))
     log("Left comment on Pull Request")
