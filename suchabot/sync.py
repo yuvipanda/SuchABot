@@ -25,11 +25,14 @@ with open(CONFIG_PATH) as f:
     config = yaml.load(f)
 gh = github.GitHub(username=config['github']['username'], password=config['github']['password'])
 
+
 def is_git_repo(path):
     return os.path.exists(path) and os.path.exists(os.path.join(path, '.git'))
 
+
 def path_for_name(name):
     return os.path.join(WORKING_DIR, name.replace('/', '-'))
+
 
 def ensure_repo(name):
     if not os.path.exists(WORKING_DIR):
@@ -53,24 +56,30 @@ def ensure_repo(name):
         sh.git.review('-s')
         log("git review setup!")
 
+
 def get_pullreq(name, number):
     gh_name = name.replace('/', '-')
     pr = gh.repos(OWNER, gh_name).pulls(number).get()
     return pr
 
+
 def gerrit_url_for(change_id):
     return "https://gerrit.wikimedia.org/r/#q,%s,n,z" % change_id
 
+
 def format_commit_msg(pr, change_id=None):
     return COMMIT_MSG_TEMPLATE.render(pr=pr, change_id=change_id)
+
 
 # Assumes current directory and work tree
 def get_last_change_id():
     header = str(sh.git('--no-pager', 'log', '-n', '1'))
     return list(CHANGE_ID_REGEX.finditer(header))[-1].group(1)
 
+
 def log(s):
     print s
+
 
 def do_review(pr):
     # FIXME: This breaks for any repo with a '-' in it's name itself

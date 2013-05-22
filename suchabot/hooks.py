@@ -6,9 +6,11 @@ import github
 
 gh = None
 
+
 def login(username, password):
     global gh
     gh = github.GitHub(username=username, password=password)
+
 
 def add_hook(owner, repo, hook, url):
     try:
