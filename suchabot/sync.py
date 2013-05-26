@@ -46,7 +46,7 @@ def ensure_repo(name):
         logger.info("Found Repo. Updating")
         sh.git.fetch('origin')
         sh.git.fetch('gerrit')
-        logger.info("Repo updated")d
+        logger.info("Repo updated")
     else:
         logger.info("Repo not found. Cloning")
         sh.cd(WORKING_DIR)
