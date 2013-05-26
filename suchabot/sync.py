@@ -91,7 +91,7 @@ def do_review(pr):
     if 'tmp' in sh.git.branch():
         sh.git.branch('-D', 'tmp')
     sh.git.checkout(pr.base.sha, '-b', 'tmp')
-    logging.info('Attempting to download & apply patch on top of SHA1' % pr.base.sha)
+    logging.info('Attempting to download & apply patch on top of SHA %s' % pr.base.sha)
     sh.git.am(sh.curl(pr.patch_url))
     logging.info('Patch applied successfully')
 
