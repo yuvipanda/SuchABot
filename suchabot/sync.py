@@ -38,24 +38,24 @@ def path_for_name(name):
 def ensure_repo(name):
     if not os.path.exists(WORKING_DIR):
         sh.mkdir('-p', WORKING_DIR)
-        logger.info('working directory %s created' % WORKING_DIR)
+        logging.info('working directory %s created' % WORKING_DIR)
     fs_name = name.replace('/', '-')
     clone_folder = os.path.join(WORKING_DIR, fs_name)
     if is_git_repo(clone_folder):
         sh.cd(clone_folder)
-        logger.info("Found Repo. Updating")
+        logging.info("Found Repo. Updating")
         sh.git.fetch('origin')
         sh.git.fetch('gerrit')
-        logger.info("Repo updated")
+        logging.info("Repo updated")
     else:
-        logger.info("Repo not found. Cloning")
+        logging.info("Repo not found. Cloning")
         sh.cd(WORKING_DIR)
         sh.git.clone(GERRIT_TEMPLATE % name, fs_name)
-        logger.info("Clone completed. Setting up git review")
+        logging.info("Clone completed. Setting up git review")
         sh.cd(fs_name)
         sh.git.remote('add', 'gerrit', GERRIT_TEMPLATE % name)
         sh.git.review('-s')
-        logger.info("git review setup")
+        logging.info("git review setup")
 
 
 def get_pullreq(name, number):
@@ -91,9 +91,9 @@ def do_review(pr):
     if 'tmp' in sh.git.branch():
         sh.git.branch('-D', 'tmp')
     sh.git.checkout(pr.base.sha, '-b', 'tmp')
-    logger.info('Attempting to download & apply patch on top of SHA1' % pr.base.sha)
+    logging.info('Attempting to download & apply patch on top of SHA1' % pr.base.sha)
     sh.git.am(sh.curl(pr.patch_url))
-    logger.info('Patch applied successfully')
+    logging.info('Patch applied successfully')
 
     # Author of last patch is going to be the author of the commit on Gerrit. Hmpf
     author = sh.git('--no-pager', 'log', '--no-color', '-n', '1', '--format="%an <%ae>"')
@@ -111,26 +111,26 @@ def do_review(pr):
         change_id = get_last_change_id()
         sh.git.checkout("master")
         sh.git.branch('-D', branch_name)
-        logger.info('Patchset with Id %s already exists', change_id)
+        logging.info('Patchset with Id %s already exists', change_id)
     else:
         is_new = True
-        logger.info('Patchset not found, creating new')
+        logging.info('Patchset not found, creating new')
 
-    logger.info('Attempting to Squash Changes on top of %s in %s', pr.base.sha, branch_name)
+    logging.info('Attempting to Squash Changes on top of %s in %s', pr.base.sha, branch_name)
     sh.git.checkout(pr.base.sha, '-b', branch_name)
     sh.git.merge('--squash', 'tmp')
     sh.git.commit('--author', author, '-m', format_commit_msg(pr, change_id=change_id))
-    logger.info('Changes squashed successfully')
+    logging.info('Changes squashed successfully')
     if is_new:
         change_id = get_last_change_id()
-        logger.info('New Change-Id is %s', change_id)
-    logger.info('Attempting git review')
+        logging.info('New Change-Id is %s', change_id)
+    logging.info('Attempting git review')
     sh.git.review()
-    logger.info('git review successful')
+    logging.info('git review successful')
     sh.git.checkout('master') # Set branch back to master when we're done
     if is_new:
         gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Submitted to Gerrit: %s' % gerrit_url_for(change_id))
-        logger.info('Left comment on Pull Request')
+        logging.info('Left comment on Pull Request')
 
 if __name__ == '__main__':
     name = sys.argv[1]
