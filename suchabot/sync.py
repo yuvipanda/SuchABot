@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 import github
 import sh
@@ -37,24 +38,24 @@ def path_for_name(name):
 def ensure_repo(name):
     if not os.path.exists(WORKING_DIR):
         sh.mkdir('-p', WORKING_DIR)
-        log("Created working directory %s" % WORKING_DIR)
+        logger.info('working directory %s created' % WORKING_DIR)
     fs_name = name.replace('/', '-')
     clone_folder = os.path.join(WORKING_DIR, fs_name)
     if is_git_repo(clone_folder):
         sh.cd(clone_folder)
-        log("Repo found, updating...")
+        logger.info("Found Repo. Updating")
         sh.git.fetch('origin')
         sh.git.fetch('gerrit')
-        log("Updated!")
+        logger.info("Repo updated")d
     else:
-        log("Repo not found. Cloning...")
+        logger.info("Repo not found. Cloning")
         sh.cd(WORKING_DIR)
         sh.git.clone(GERRIT_TEMPLATE % name, fs_name)
-        log("Clone completed! Setting up git review...")
+        logger.info("Clone completed. Setting up git review")
         sh.cd(fs_name)
         sh.git.remote('add', 'gerrit', GERRIT_TEMPLATE % name)
         sh.git.review('-s')
-        log("git review setup!")
+        logger.info("git review setup")
 
 
 def get_pullreq(name, number):
@@ -77,16 +78,11 @@ def get_last_change_id():
     return list(CHANGE_ID_REGEX.finditer(header))[-1].group(1)
 
 
-def log(s):
-    print s
-
-
 def do_review(pr):
     # FIXME: This breaks for any repo with a '-' in it's name itself
     # BLEH
     name = pr.base.repo.name.replace('-', '/')
     ensure_repo(name)
-    log("Syncing Repo %s for PR #%s" % (name, pr.number))
     gh_name = name.replace('/', '-')
     path = path_for_name(name)
     sh.cd(path)
@@ -95,9 +91,9 @@ def do_review(pr):
     if 'tmp' in sh.git.branch():
         sh.git.branch('-D', 'tmp')
     sh.git.checkout(pr.base.sha, '-b', 'tmp')
-    log("Attempting to download patch")
+    logger.info('Attempting to download & apply patch on top of SHA1' % pr.base.sha)
     sh.git.am(sh.curl(pr.patch_url))
-    log("Applied patch")
+    logger.info('Patch applied successfully')
 
     # Author of last patch is going to be the author of the commit on Gerrit. Hmpf
     author = sh.git('--no-pager', 'log', '--no-color', '-n', '1', '--format="%an <%ae>"')
@@ -106,37 +102,40 @@ def do_review(pr):
 
     branch_name = 'github/pr/%s' % pr.number
 
-    log("Topic Branch %s" % branch_name)
     is_new = True
     change_id = None
 
     if branch_name in sh.git.branch():
         is_new = False
-        log("Patchset already exists, based on %s" % pr.base.sha)
         sh.git.checkout(branch_name)
         change_id = get_last_change_id()
         sh.git.checkout("master")
         sh.git.branch('-D', branch_name)
+        logger.info('Patchset with Id %s already exists', change_id)
     else:
-        log("New patchset, based on %s" % pr.base.sha)
         is_new = True
+        logger.info('Patchset not found, creating new')
 
+    logger.info('Attempting to Squash Changes on top of %s in %s', pr.base.sha, branch_name)
     sh.git.checkout(pr.base.sha, '-b', branch_name)
     sh.git.merge('--squash', 'tmp')
     sh.git.commit('--author', author, '-m', format_commit_msg(pr, change_id=change_id))
+    logger.info('Changes squashed successfully')
     if is_new:
         change_id = get_last_change_id()
-    log("Patchset Change-Id: %s" % change_id)
-    log("attempting review")
-    #sh.git.review()
-    log("Review successful!")
+        logger.info('New Change-Id is %s', change_id)
+    logger.info('Attempting git review')
+    sh.git.review()
+    logger.info('git review successful')
     sh.git.checkout('master') # Set branch back to master when we're done
     if is_new:
         gh.repos(OWNER, gh_name).issues(pr.number).comments.post(body='Submitted to Gerrit: %s' % gerrit_url_for(change_id))
-    log("Left comment on Pull Request")
+        logger.info('Left comment on Pull Request')
 
 if __name__ == '__main__':
     name = sys.argv[1]
     pr_num = sys.argv[2]
+    job_id = os.environ['JOB_ID']
 
+    logging.basicConfig(format='%%(asctime)s %s PR#%s Job#%s %%(message)s' % (name, pr_num, job_id), filename=os.path.expanduser('~/logs/%s.receive' % name), level=logging.INFO)
     do_review(get_pullreq(name, pr_num))
