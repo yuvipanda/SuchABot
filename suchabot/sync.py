@@ -137,5 +137,5 @@ if __name__ == '__main__':
     pr_num = sys.argv[2]
     job_id = os.environ['JOB_ID']
 
-    logging.basicConfig(format='%%(asctime)s %s PR#%s Job#%s %%(message)s' % (name, pr_num, job_id), filename=os.path.expanduser('~/logs/%s.receive' % name), level=logging.INFO)
+    logging.basicConfig(format='%%(asctime)s %s PR#%s Job#%s %%(message)s' % (name, pr_num, job_id), filename=os.path.expanduser('~/logs/%s.process' % name), level=logging.INFO)
     do_review(get_pullreq(name, pr_num))
