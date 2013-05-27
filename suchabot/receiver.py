@@ -35,3 +35,5 @@ output = subprocess.check_output('/usr/local/bin/jsub'
 jobid = output.split('\n')[1].split(' ')[2]
 
 logging.info("queued job %s", jobid)
+print 'HTTP/1.0 200 OK'
+print
