@@ -138,4 +138,8 @@ if __name__ == '__main__':
     job_id = os.environ['JOB_ID']
 
     logging.basicConfig(format='%%(asctime)s %s PR#%s Job#%s %%(message)s' % (name, pr_num, job_id), filename=os.path.expanduser('~/logs/%s.process' % name), level=logging.INFO)
-    do_review(get_pullreq(name, pr_num))
+    try:
+        do_review(get_pullreq(name, pr_num))
+    except:
+        gh.repos(OWNER, name).issues(pr_num).comments.post(body='Sorry, an error occured :( @yuvipanda will now be notified that job#%s did not end well' % job_id)
+        logging.exception("Error!")
