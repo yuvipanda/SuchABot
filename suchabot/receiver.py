@@ -22,18 +22,22 @@ action = payload['action']
 logging.basicConfig(format='%%(asctime)s %s PR#%s %s %%(message)s' % (repo, number, action), filename=os.path.expanduser('~/logs/%s.receive' % repo), level=logging.INFO)
 
 logging.info('received')
-output = subprocess.check_output('/usr/local/bin/jsub'
-                                ' -N suchabot'
-                                ' -o /data/project/suchaserver/suchabot.out'
-                                ' -e /data/project/suchaserver/suchabot.err'
-                                ' -mem 512M /data/project/suchaserver/code/SuchABot/suchabot/sync.bash'
-                                ' {0} {1}'.format(pipes.quote(repo), pipes.quote(number)),
-                                stderr=subprocess.STDOUT, shell=True, env=environ)
+if action == 'closed':
+    #FIXME: In the future, this should probably abandon the Gerrit patch
+    logging.info('ignored')
+else:
+    output = subprocess.check_output('/usr/local/bin/jsub'
+                                    ' -N suchabot'
+                                    ' -o /data/project/suchaserver/suchabot.out'
+                                    ' -e /data/project/suchaserver/suchabot.err'
+                                    ' -mem 512M /data/project/suchaserver/code/SuchABot/suchabot/sync.bash'
+                                    ' {0} {1}'.format(pipes.quote(repo), pipes.quote(number)),
+                                    stderr=subprocess.STDOUT, shell=True, env=environ)
 
-# Sortof potentially hopefully stable way to get the job id.
-# valhallasw says it should be okay....
-jobid = output.split('\n')[1].split(' ')[2]
+    # Sortof potentially hopefully stable way to get the job id.
+    # valhallasw says it should be okay....
+    jobid = output.split('\n')[1].split(' ')[2]
 
-logging.info("queued job %s", jobid)
+    logging.info("queued job %s", jobid)
 print 'HTTP/1.0 200 OK'
 print
