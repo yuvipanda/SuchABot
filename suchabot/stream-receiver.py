@@ -42,7 +42,7 @@ if __name__ == '__main__':
     while line:
         id = unicode(get_next_id())
         key = make_key(u'message', id)
-        red.setex(key, line, REDIS_EXPIRE)
+        red.setex(key, REDIS_EXPIRE, line)
         logging.info('Pushed key %s', key)
         line = stdout.readline()
     stdout.close()
