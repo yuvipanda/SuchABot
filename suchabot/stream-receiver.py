@@ -15,6 +15,7 @@ PORT = config['gerrit']['port']
 
 REDIS_DB = config['redis']['db']
 REDIS_HOST = config['redis']['host']
+REDIS_EXPIRE = config['redis']['key_timeout']
 PREFIX = config['redis']['prefix']
 
 logging.basicConfig(filename=os.path.expanduser('~/logs/stream-receiver'), level=logging.INFO)
@@ -37,12 +38,11 @@ def get_next_id():
 
 if __name__ == '__main__':
     stdin, stdout, stderr = ssh.exec_command('gerrit stream-events')
-    stdin.flush()
     line = stdout.readline()
     while line:
         id = unicode(get_next_id())
         key = make_key(u'message', id)
-        red.rpush(key, line)
+        red.setex(key, line, REDIS_EXPIRE)
         logging.info('Pushed key %s', key)
         line = stdout.readline()
     stdout.close()
