@@ -18,7 +18,7 @@ REDIS_HOST = config['redis']['host']
 REDIS_EXPIRE = config['redis']['key_timeout']
 PREFIX = config['redis']['prefix']
 
-logging.basicConfig(filename=os.path.expanduser('~/logs/stream-receiver'), level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename=os.path.expanduser('~/logs/stream-receiver'), level=logging.INFO)
 
 ssh = paramiko.SSHClient()
 ssh.load_system_host_keys()
