@@ -12,8 +12,8 @@ with open(CONFIG_FILE) as f:
 
 REDIS_DB = config['redis']['db']
 REDIS_HOST = config['redis']['host']
-PREFIX = config['redis']['prefix']
-CLIENTS_KEY = config['redis']['clients_key']
+PREFIX = config['stream_receiver']['redis_prefix']
+CLIENTS_KEY = config['stream_receiver']['clients_key']
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename=os.path.expanduser('~/logs/register-stream-client'), level=logging.INFO)
 
