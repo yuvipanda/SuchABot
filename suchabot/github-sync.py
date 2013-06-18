@@ -79,7 +79,7 @@ if __name__ == '__main__':
     while True:
         data = json.loads(red.brpop(CLIENT_KEY)[1])
         # FIXME: Needs to be far more robust
-        if 'change' not in data or not data['change']['topic'].startswith('github/pr'):
+        if not ('change' in data and 'topic' in data['change'] and data['change']['topic'].startswith('github/pr')):
             continue
         gh_name = data['change']['project'].replace('/', '-')
         pr_num = int(data['change']['topic'].split('/')[-1])
