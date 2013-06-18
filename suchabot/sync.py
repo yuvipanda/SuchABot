@@ -125,7 +125,7 @@ def do_review(pr):
         change_id = get_last_change_id()
         logging.info('New Change-Id is %s', change_id)
     logging.info('Attempting git review')
-    sh.git.review()
+    sh.git.review('-t', branch_name)
     logging.info('git review successful')
     sh.git.checkout('master') # Set branch back to master when we're done
     if is_new:
