@@ -1,3 +1,4 @@
+import sys
 import os
 import logging
 
@@ -44,3 +45,4 @@ if __name__ == '__main__':
         logging.info('Pushed to %s clients', count)
         line = stdout.readline()
     stdout.close()
+    sys.exit(-1) # This can never end well
