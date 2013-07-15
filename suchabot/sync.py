@@ -11,6 +11,7 @@ import re
 
 WORKING_DIR = os.path.expanduser("~/.sucharepos")
 CONFIG_PATH = os.path.expanduser('~/.suchabot.yaml')
+REPOS_MAPPING = yaml.load(open('repos.yaml'))
 OWNER = "wikimedia"
 CHANGE_ID_REGEX = re.compile('Change-Id: (\w+)')
 GERRIT_TEMPLATE = "ssh://suchabot@gerrit.wikimedia.org:29418/%s.git"
@@ -33,6 +34,12 @@ def is_git_repo(path):
 
 def path_for_name(name):
     return os.path.join(WORKING_DIR, name.replace('/', '-'))
+
+
+def gerrit_name_for(gh_name):
+    if gh_name in REPOS_MAPPING:
+        return REPOS_MAPPING[gh_name]
+    return name.replace('-', '/')
 
 
 def ensure_repo(name):
@@ -79,11 +86,9 @@ def get_last_change_id():
 
 
 def do_review(pr):
-    # FIXME: This breaks for any repo with a '-' in it's name itself
-    # BLEH
-    name = pr.base.repo.name.replace('-', '/')
+    name = gerrit_name_for(pr.base.repo.name)
     ensure_repo(name)
-    gh_name = name.replace('/', '-')
+    gh_name = pr.base.repo.name
     path = path_for_name(name)
     sh.cd(path)
     sh.git.reset('--hard')
