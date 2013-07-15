@@ -41,7 +41,7 @@ def path_for_name(name):
 def gerrit_name_for(gh_name):
     if gh_name in REPOS_GITHUB_TO_GERRIT:
         return REPOS_GITHUB_TO_GERRIT[gh_name]
-    return name.replace('-', '/')
+    return gh_name.replace('-', '/')
 
 def ensure_repo(name):
     if not os.path.exists(WORKING_DIR):
