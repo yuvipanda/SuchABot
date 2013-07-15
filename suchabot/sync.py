@@ -12,6 +12,8 @@ import re
 WORKING_DIR = os.path.expanduser("~/.sucharepos")
 CONFIG_PATH = os.path.expanduser('~/.suchabot.yaml')
 REPOS_MAPPING = yaml.load(open('repos.yaml'))
+REPOS_GITHUB_TO_GERRIT = REPOS_MAPPING['repos']
+REPOS_GERRIT_TO_GITHUB = {v:k for k, v in REPOS_GITHUB_TO_GERRIT.iteritems()}
 OWNER = "wikimedia"
 CHANGE_ID_REGEX = re.compile('Change-Id: (\w+)')
 GERRIT_TEMPLATE = "ssh://suchabot@gerrit.wikimedia.org:29418/%s.git"
@@ -37,10 +39,9 @@ def path_for_name(name):
 
 
 def gerrit_name_for(gh_name):
-    if gh_name in REPOS_MAPPING:
-        return REPOS_MAPPING[gh_name]
+    if gh_name in REPOS_GITHUB_TO_GERRIT:
+        return REPOS_GITHUB_TO_GERRIT[gh_name]
     return name.replace('-', '/')
-
 
 def ensure_repo(name):
     if not os.path.exists(WORKING_DIR):
