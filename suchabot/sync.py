@@ -16,12 +16,12 @@ REPOS_GITHUB_TO_GERRIT = REPOS_MAPPING['repos']
 REPOS_GERRIT_TO_GITHUB = {v:k for k, v in REPOS_GITHUB_TO_GERRIT.iteritems()}
 OWNER = "wikimedia"
 CHANGE_ID_REGEX = re.compile('Change-Id: (\w+)')
+GERRIT_TAG_REGEX = re.compile('^(Bug|RT):', re.MULTILINE | re.IGNORECASE)
 GERRIT_TEMPLATE = "ssh://suchabot@gerrit.wikimedia.org:29418/%s.git"
 BOT_AUTHOR = "SuchABot <yuvipanda+suchabot@gmail.com>"
 COMMIT_MSG_TEMPLATE = jinja2.Template("""{{pr.title}}
 
-{{pr.body}}
-
+{{body}}
 GitHub: {{pr.html_url}}
 {% if change_id %}Change-Id: {{change_id}} {% endif %}""")
 
@@ -77,7 +77,11 @@ def gerrit_url_for(change_id):
 
 
 def format_commit_msg(pr, change_id=None):
-    return COMMIT_MSG_TEMPLATE.render(pr=pr, change_id=change_id)
+    if GERRIT_TAG_REGEX.search(pr.body) == None:
+        body = pr.body.strip() + "\n"
+    else:
+        body = pr.body.strip()
+    return COMMIT_MSG_TEMPLATE.render(pr=pr, body=body, change_id=change_id)
 
 
 # Assumes current directory and work tree
