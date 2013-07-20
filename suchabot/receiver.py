@@ -22,7 +22,7 @@ action = payload['action']
 logging.basicConfig(format='%%(asctime)s %s PR#%s %s %%(message)s' % (repo, number, action), filename=os.path.expanduser('~/logs/%s.receive' % repo), level=logging.INFO)
 
 logging.info('received')
-if action == 'closed':
+if action == 'closed' or action == 'reopened':
     #FIXME: In the future, this should probably abandon the Gerrit patch
     logging.info('ignored')
 else:
