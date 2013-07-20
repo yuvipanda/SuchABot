@@ -49,19 +49,19 @@ def make_key(*key_parts):
 def change_abandoned(gerrit_data, gh_name, pr_num):
     gh.repos(OWNER, gh_name).issues(pr_num).comments.post(body=ABANDON_TEMPLATE.render(event=gerrit_data))
     logging.info("Left comment about abandonment on %s/%s", gh_name, pr_num)
-    gh.repos(OWNER, gh_name).issues(pr_num).post(state='closed')
+    gh.repos(OWNER, gh_name).pulls(pr_num).post(state='closed')
     logging.info("Closed Pull Request %s/%s", gh_name, pr_num)
 
 def change_merged(gerrit_data, gh_name, pr_num):
     gh.repos(OWNER, gh_name).issues(pr_num).comments.post(body=MERGE_TEMPLATE.render(event=gerrit_data))
     logging.info("Left comment about merging on %s/%s", gh_name, pr_num)
-    gh.repos(OWNER, gh_name).issues(pr_num).post(state='closed')
+    gh.repos(OWNER, gh_name).pulls(pr_num).post(state='closed')
     logging.info("Closed Pull Request %s/%s", gh_name, pr_num)
 
 def change_restored(gerrit_data, gh_name, pr_num):
     gh.repos(OWNER, gh_name).issues(pr_num).comments.post(body=RESTORE_TEMPLATE.render(event=gerrit_data))
     logging.info("Left comment about re-opening on %s/%s", gh_name, pr_num)
-    gh.repos(OWNER, gh_name).issues(pr_num).post(state='open')
+    gh.repos(OWNER, gh_name).pulls(pr_num).post(state='open')
     logging.info("Reopened Pull Request %s/%s", gh_name, pr_num)
 
 def comment_added(gerrit_data, gh_name, pr_num):
