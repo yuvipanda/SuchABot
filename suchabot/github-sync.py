@@ -8,15 +8,15 @@ import yaml
 import jinja2
 
 ABANDON_TEMPLATE = jinja2.Template("""Change abandoned by {{event.abandoner.name}}{% if event.reason %}
-Reason:
+
 {{event.reason}} {% endif %}""")
 
 MERGE_TEMPLATE = jinja2.Template("""Change merged by {{event.submitter.name}}{% if event.reason %}
-Reason:
+
 {{event.reason}}{% endif %}""")
 
 RESTORE_TEMPLATE = jinja2.Template("""Change restored by {{event.restorer.name}}{% if event.reason %}
-Reason:
+
 {{event.reason}}{% endif %}""")
 
 COMMENT_TEMPLATE = jinja2.Template("""{{event.author.name}} left a comment on Gerrit:
